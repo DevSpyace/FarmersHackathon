@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-//import '../models/product_model.dart';
 
 class ProductCarousel extends StatelessWidget {
   final String title;
   final List products;
   final Function update;
+  final BuildContext context;
+  final Function navigate;
 
-  ProductCarousel({
-    this.title,
-    this.products,
-    this.update,
-  });
+  ProductCarousel(
+      {this.title, this.products, this.update, this.context, this.navigate});
 
   _buildProductCard(int index) {
     return Container(
@@ -30,12 +28,26 @@ class ProductCarousel extends StatelessWidget {
       ),
       child: Stack(
         children: <Widget>[
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.white,
-            child: Image(
-              image: NetworkImage(products[index][0]),
+          InkWell(
+            onTap: () {
+              navigate(index, products);
+            },
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.white,
+              child: Hero(
+                tag: products[index][1],
+                child: Image(
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      child: Icon(Icons.image),
+                    );
+                  },
+                  image: NetworkImage(products[index][0]),
+                ),
+              ),
             ),
           ),
           SizedBox(height: 10.0),

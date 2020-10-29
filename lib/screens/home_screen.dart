@@ -1,3 +1,4 @@
+import './productPage.dart';
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../screens/cart_screen.dart';
@@ -20,6 +21,18 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  void openProductInfo(int index, dynamic products) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProductPage(
+          image: products[index][0],
+          category: products[index][2],
+          name: products[index][1],
+        ),
+      ),
+    );
+  }
+
   FirebaseFirestore fs = FirebaseFirestore.instance;
   getData(String category, List a) async {
     var ref = fs.collection("Products").doc(category);
@@ -28,11 +41,22 @@ class _HomeScreenState extends State<HomeScreen> {
         print(key);
         print(value);
         var v = Map.from(value);
-        a.add([v["Image"], v["Name"]]);
+        a.add([v["Image"], v["Name"], category]);
       });
       setState(() {
         print(a);
       });
+    });
+  }
+
+  updateSellers(String category, String product, String email) async {
+    var ref = await fs.collection("Products").doc(category).get();
+    var p = Map.from(ref.data()["$product"]);
+    var sellers = p["Sellers"] ?? [];
+    sellers.add(email);
+    fs.collection("Products").doc(category).set({
+      ...ref.data(),
+      product: {...p, "Sellers": sellers}
     });
   }
 
@@ -62,14 +86,17 @@ class _HomeScreenState extends State<HomeScreen> {
               Padding(
                 padding: EdgeInsets.only(top: 12.0, right: 20.0),
                 child: InkResponse(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CartScreen(
-                        update: updateCart,
-                      ),
-                    ),
-                  ),
+                  onTap: () {
+                    //   Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (_) => CartScreen(
+                    //       update: updateCart,
+                    //     ),
+                    //   ),
+                    // )},
+                    updateSellers("Fruits", "Kiwi", "Kalyan45@gmail.com");
+                  },
                   child: Icon(
                     Icons.shopping_basket,
                     size: 30.0,
@@ -228,21 +255,25 @@ class _HomeScreenState extends State<HomeScreen> {
             title: 'Fruits',
             products: fruits,
             update: updateCart,
+            navigate: openProductInfo,
           ),
           ProductCarousel(
             title: 'Vegetables',
             products: vegetables,
             update: updateCart,
+            navigate: openProductInfo,
           ),
           ProductCarousel(
             title: 'Kharif',
             products: kharif,
             update: updateCart,
+            navigate: openProductInfo,
           ),
           ProductCarousel(
             title: 'Rabi',
             products: rabi,
             update: updateCart,
+            navigate: openProductInfo,
           )
         ],
       ),
